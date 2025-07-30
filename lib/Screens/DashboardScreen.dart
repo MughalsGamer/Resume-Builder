@@ -1403,10 +1403,12 @@ import 'package:universal_html/html.dart' as html;
 import '../Resume Model.dart';
 import '../ThemeProvider.dart';
 
+
+
 class ResumeFormScreen extends StatefulWidget {
   final Resume? resume;
 
-  ResumeFormScreen({this.resume});
+  const ResumeFormScreen({Key? key, this.resume}) : super(key: key);
 
   @override
   _ResumeFormScreenState createState() => _ResumeFormScreenState();
@@ -1439,32 +1441,25 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
   String? _religion;
   String? _gender;
   bool _isFresher = false;
-  Uint8List? _imageBytes;
   String? _base64Image;
 
   @override
   void initState() {
     super.initState();
+    _initializeControllers();
+  }
 
+  void _initializeControllers() {
     // Initialize with existing resume data or defaults
     _nameController = TextEditingController(text: widget.resume?.name ?? '');
     _contactController = TextEditingController(text: widget.resume?.contact ?? '');
     _emailController = TextEditingController(text: widget.resume?.email ?? '');
-    _fatherController = TextEditingController(
-        text: widget.resume?.personalInfo['fatherName'] ?? ''
-    );
-    _cnicController = TextEditingController(
-        text: widget.resume?.personalInfo['cnic'] ?? ''
-    );
-    _dobController = TextEditingController(
-        text: widget.resume?.personalInfo['dob'] ?? ''
-    );
-    _addressController = TextEditingController(
-        text: widget.resume?.personalInfo['address'] ?? ''
-    );
+    _fatherController = TextEditingController(text: widget.resume?.personalInfo['fatherName'] ?? '');
+    _cnicController = TextEditingController(text: widget.resume?.personalInfo['cnic'] ?? '');
+    _dobController = TextEditingController(text: widget.resume?.personalInfo['dob'] ?? '');
+    _addressController = TextEditingController(text: widget.resume?.personalInfo['address'] ?? '');
     _objectiveController = TextEditingController(
-        text: widget.resume?.objective ??
-            'To work in a dynamic professional environment with a growing organization and utilize my creativity and innovative thinking for benefit of the organization and myself.'
+        text: widget.resume?.objective ?? 'To work in a dynamic professional environment with a growing organization and utilize my creativity and innovative thinking for benefit of the organization and myself.'
     );
     _referenceController = TextEditingController(
         text: widget.resume?.reference ?? 'Will be furnished on demand.'
@@ -1510,6 +1505,11 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
 
   @override
   void dispose() {
+    _disposeControllers();
+    super.dispose();
+  }
+
+  void _disposeControllers() {
     // Dispose all controllers
     _nameController.dispose();
     _contactController.dispose();
@@ -1536,8 +1536,6 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
     for (var edu in _education) {
       edu.dispose();
     }
-
-    super.dispose();
   }
 
   Map<String, dynamic> _prepareResumeData() {
@@ -1663,12 +1661,11 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
   }
 
   ImageProvider? _getBackgroundImage() {
-    if (_imageBytes != null) return MemoryImage(_imageBytes!);
     if (_base64Image != null) {
       try {
         return MemoryImage(base64Decode(_base64Image!));
       } catch (e) {
-        print('Error decoding base64 image: $e');
+        debugPrint('Error decoding base64 image: $e');
         return null;
       }
     }
@@ -1687,14 +1684,13 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
-          _imageBytes = bytes;
           _base64Image = base64Encode(bytes);
         });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error picking image: ${e.toString()}'),
+          content: Text('Error picking image: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1714,14 +1710,13 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
       if (pickedFile != null) {
         final bytes = await pickedFile.readAsBytes();
         setState(() {
-          _imageBytes = bytes;
           _base64Image = base64Encode(bytes);
         });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error taking photo: ${e.toString()}'),
+          content: Text('Error taking photo: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1771,11 +1766,13 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                   ],
                 ),
                 child: CircleAvatar(
-                  radius: 70,
+                  radius: MediaQuery.of(context).size.width * 0.15,
                   backgroundColor: Colors.grey[200],
                   backgroundImage: _getBackgroundImage(),
-                  child: _imageBytes == null && _base64Image == null
-                      ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                  child: _base64Image == null
+                      ? Icon(Icons.person,
+                      size: MediaQuery.of(context).size.width * 0.12,
+                      color: Colors.grey)
                       : null,
                 ),
               ),
@@ -1786,34 +1783,38 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
+                  icon: Icon(Icons.camera_alt,
+                      size: MediaQuery.of(context).size.width * 0.05,
+                      color: Colors.white),
                   onPressed: () {
                     if (kIsWeb) {
                       _pickImage();
                     } else {
                       showModalBottomSheet(
                         context: context,
-                        builder: (context) => Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.photo_library),
-                              title: const Text('Choose from gallery'),
-                              onTap: () {
-                                Navigator.pop(context);
-                                _pickImage();
-                              },
-                            ),
-                            if (!kIsWeb)
+                        builder: (context) => SafeArea(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
                               ListTile(
-                                leading: const Icon(Icons.camera_alt),
-                                title: const Text('Take a photo'),
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('Choose from gallery'),
                                 onTap: () {
                                   Navigator.pop(context);
-                                  _takePhoto();
+                                  _pickImage();
                                 },
                               ),
-                          ],
+                              if (!kIsWeb)
+                                ListTile(
+                                  leading: const Icon(Icons.camera_alt),
+                                  title: const Text('Take a photo'),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    _takePhoto();
+                                  },
+                                ),
+                            ],
+                          ),
                         ),
                       );
                     }
@@ -1826,7 +1827,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
           Text(
             'Upload Profile Photo',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: MediaQuery.of(context).size.width * 0.04,
               fontWeight: FontWeight.w500,
               color: Colors.grey[600],
             ),
@@ -1844,93 +1845,106 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Full Name',
-                prefixIcon: Icon(Icons.person, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _fatherController,
-              decoration: InputDecoration(
-                labelText: 'Father/Husband Name',
-                prefixIcon: Icon(Icons.family_restroom, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-            ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = constraints.maxWidth < 600;
 
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _contactController,
-              decoration: InputDecoration(
-                labelText: 'Contact',
-                prefixIcon: Icon(Icons.phone, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              keyboardType: TextInputType.phone,
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-            ),
-
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              keyboardType: TextInputType.emailAddress,
-
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _cnicController,
-              decoration: InputDecoration(
-                labelText: 'CNIC',
-                prefixIcon: Icon(Icons.credit_card, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _dobController,
-              decoration: InputDecoration(
-                labelText: 'Date of Birth',
-                prefixIcon: Icon(Icons.calendar_today, color: Colors.grey[600]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.calendar_month),
-                  onPressed: () => _selectDate(context),
-                ),
-              ),
-              readOnly: true,
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-            ),
-            const SizedBox(height: 16),
-            Row(
+            return Column(
               children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person, color: Colors.grey[600]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _fatherController,
+                  decoration: InputDecoration(
+                    labelText: 'Father/Husband Name',
+                    prefixIcon: Icon(Icons.family_restroom, color: Colors.grey[600]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _contactController,
+                  decoration: InputDecoration(
+                    labelText: 'Contact',
+                    prefixIcon: Icon(Icons.phone, color: Colors.grey[600]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email, color: Colors.grey[600]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _cnicController,
+                  decoration: InputDecoration(
+                    labelText: 'CNIC',
+                    prefixIcon: Icon(Icons.credit_card, color: Colors.grey[600]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _dobController,
+                  readOnly: true, // Prevents keyboard from showing
+                  onTap: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+                    if (pickedDate != null) {
+                      _dobController.text = DateFormat('yyyy-MM-dd').format(pickedDate); // Format as needed
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Date of Birth',
+                    prefixIcon: Icon(Icons.calendar_today, color: Colors.grey[600]),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                ),
+
+                const SizedBox(height: 16),
+
+                if (isSmallScreen) ...[
+                  DropdownButtonFormField<String>(
                     value: _status,
                     items: ['Single', 'Married'].map((status) {
                       return DropdownMenuItem(
@@ -1947,10 +1961,9 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<String>(
                     value: _religion,
                     items: ['Islam', 'Christian', 'Hindu', 'Other'].map((religion) {
                       return DropdownMenuItem(
@@ -1967,14 +1980,9 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<String>(
                     value: _gender,
                     items: ['Male', 'Female', 'Other'].map((gender) {
                       return DropdownMenuItem(
@@ -1991,10 +1999,9 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
+                  const SizedBox(height: 16),
+
+                  TextFormField(
                     controller: _addressController,
                     decoration: InputDecoration(
                       labelText: 'Address',
@@ -2006,10 +2013,94 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                     maxLines: 2,
                     validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                   ),
-                ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _status,
+                          items: ['Single', 'Married'].map((status) {
+                            return DropdownMenuItem(
+                              value: status,
+                              child: Text(status),
+                            );
+                          }).toList(),
+                          onChanged: (value) => setState(() => _status = value),
+                          decoration: InputDecoration(
+                            labelText: 'Status',
+                            prefixIcon: Icon(Icons.person_outline, color: Colors.grey[600]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _religion,
+                          items: ['Islam', 'Christian', 'Hindu', 'Other'].map((religion) {
+                            return DropdownMenuItem(
+                              value: religion,
+                              child: Text(religion),
+                            );
+                          }).toList(),
+                          onChanged: (value) => setState(() => _religion = value),
+                          decoration: InputDecoration(
+                            labelText: 'Religion',
+                            prefixIcon: Icon(Icons.people_outline, color: Colors.grey[600]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _gender,
+                          items: ['Male', 'Female', 'Other'].map((gender) {
+                            return DropdownMenuItem(
+                              value: gender,
+                              child: Text(gender),
+                            );
+                          }).toList(),
+                          onChanged: (value) => setState(() => _gender = value),
+                          decoration: InputDecoration(
+                            labelText: 'Gender',
+                            prefixIcon: Icon(Icons.person_outline, color: Colors.grey[600]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _addressController,
+                          decoration: InputDecoration(
+                            labelText: 'Address',
+                            prefixIcon: Icon(Icons.home, color: Colors.grey[600]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          maxLines: 2,
+                          validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -2037,15 +2128,14 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: MediaQuery.of(context).size.width * 0.04,
                     fontWeight: FontWeight.w600,
                     color: Colors.blueGrey[800],
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.add_circle,
-                      color: Theme.of(context).primaryColor),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
                   onPressed: onAdd,
                 ),
               ],
@@ -2067,14 +2157,12 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 14),
                         ),
-                        validator: (value) =>
-                        value?.isEmpty ?? true ? 'Required' : null,
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                       ),
                     ),
                     if (controllers.length > 1)
                       IconButton(
-                        icon: const Icon(Icons.remove_circle,
-                            color: Colors.red),
+                        icon: const Icon(Icons.remove_circle, color: Colors.red),
                         onPressed: () => onRemove(index),
                       ),
                   ],
@@ -2101,7 +2189,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
             Text(
               'OBJECTIVE',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: MediaQuery.of(context).size.width * 0.04,
                 fontWeight: FontWeight.w600,
                 color: Colors.blueGrey[800],
               ),
@@ -2139,9 +2227,9 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
             Row(
               children: [
                 Text(
-                  'WORKING EXPERIENCE',
+                  'EXPERIENCE',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: MediaQuery.of(context).size.width * 0.04,
                     fontWeight: FontWeight.w600,
                     color: Colors.blueGrey[800],
                   ),
@@ -2149,23 +2237,22 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                 const Spacer(),
                 Row(
                   children: [
-                    Text('Fresher',
-                        style: TextStyle(color: Colors.grey[700])),
+                    Text('Fresher', style: TextStyle(color: Colors.grey[700])),
                     Checkbox(
                       value: _isFresher,
-                      onChanged: (value) =>
-                          setState(() => _isFresher = value ?? false),
+                      onChanged: (value) => setState(() => _isFresher = value ?? false),
                     ),
                   ],
                 ),
                 if (!_isFresher)
+
                   IconButton(
-                    icon: Icon(Icons.add_circle,
-                        color: Theme.of(context).primaryColor),
+                    icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
                     onPressed: () => setState(() => _experiences.add(Experience())),
                   ),
               ],
             ),
+
             const SizedBox(height: 12),
             if (!_isFresher)
               ...List.generate(_experiences.length, (index) {
@@ -2174,9 +2261,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: index.isEven
-                        ? Colors.blueGrey[50]
-                        : Colors.grey[100],
+                    color: index.isEven ? Colors.blueGrey[50] : Colors.grey[100],
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(
@@ -2185,13 +2270,11 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                         children: [
                           Text(
                             'Experience ${index + 1}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: const Icon(Icons.delete,
-                                color: Colors.red),
+                            icon: const Icon(Icons.delete, color: Colors.red),
                             onPressed: () => setState(() {
                               exp.dispose();
                               _experiences.removeAt(index);
@@ -2210,8 +2293,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 14),
                         ),
-                        validator: (value) =>
-                        value?.isEmpty ?? true ? 'Required' : null,
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -2224,8 +2306,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 14),
                         ),
-                        validator: (value) =>
-                        value?.isEmpty ?? true ? 'Required' : null,
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -2238,8 +2319,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 14),
                         ),
-                        validator: (value) =>
-                        value?.isEmpty ?? true ? 'Required' : null,
+                        validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                       ),
                     ],
                   ),
@@ -2267,15 +2347,14 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                 Text(
                   'EDUCATION',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: MediaQuery.of(context).size.width * 0.04,
                     fontWeight: FontWeight.w600,
                     color: Colors.blueGrey[800],
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.add_circle,
-                      color: Theme.of(context).primaryColor),
+                  icon: Icon(Icons.add_circle, color: Theme.of(context).primaryColor),
                   onPressed: () => setState(() => _education.add(Education())),
                 ),
               ],
@@ -2287,9 +2366,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: index.isEven
-                      ? Colors.blueGrey[50]
-                      : Colors.grey[100],
+                  color: index.isEven ? Colors.blueGrey[50] : Colors.grey[100],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -2321,8 +2398,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 14),
                       ),
-                      validator: (value) =>
-                      value?.isEmpty ?? true ? 'Required' : null,
+                      validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -2347,8 +2423,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 14),
                       ),
-                      validator: (value) =>
-                      value?.isEmpty ?? true ? 'Required' : null,
+                      validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -2387,7 +2462,7 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
             Text(
               'REFERENCE',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: MediaQuery.of(context).size.width * 0.04,
                 fontWeight: FontWeight.w600,
                 color: Colors.blueGrey[800],
               ),
@@ -2422,129 +2497,162 @@ class _ResumeFormScreenState extends State<ResumeFormScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeaderSection(),
-              const SizedBox(height: 24),
-              _buildSectionHeader(
-                title: 'Personal Information',
-                icon: Icons.person_outline,
-              ),
-              _buildPersonalInfoSection(),
-              const SizedBox(height: 20),
-              _buildSectionHeader(
-                title: 'Languages',
-                icon: Icons.language,
-              ),
-              _buildDynamicFieldSection(
-                title: 'LANGUAGES',
-                controllers: _languageControllers,
-                onAdd: () => setState(() => _languageControllers.add(TextEditingController())),
-                onRemove: (index) => setState(() {
-                  _languageControllers[index].dispose();
-                  _languageControllers.removeAt(index);
-                }),
-                labelPrefix: 'Language',
-              ),
-              const SizedBox(height: 20),
-              _buildSectionHeader(
-                title: 'Professional Skills',
-                icon: Icons.work_outline,
-              ),
-              _buildDynamicFieldSection(
-                title: 'SKILLS',
-                controllers: _skillControllers,
-                onAdd: () => setState(() => _skillControllers.add(TextEditingController())),
-                onRemove: (index) => setState(() {
-                  _skillControllers[index].dispose();
-                  _skillControllers.removeAt(index);
-                }),
-                labelPrefix: 'Skill',
-              ),
-              const SizedBox(height: 20),
-              _buildSectionHeader(
-                title: 'Career Objective',
-                icon: Icons.flag_outlined,
-              ),
-              _buildObjectiveSection(),
-              const SizedBox(height: 20),
-              _buildSectionHeader(
-                title: 'Work Experience',
-                icon: Icons.business_center_outlined,
-              ),
-              _buildExperienceSection(),
-              const SizedBox(height: 20),
-              _buildSectionHeader(
-                title: 'Education',
-                icon: Icons.school_outlined,
-              ),
-              _buildEducationSection(),
-              const SizedBox(height: 20),
-              _buildSectionHeader(
-                title: 'References',
-                icon: Icons.people_alt_outlined,
-              ),
-              _buildReferenceSection(),
-              const SizedBox(height: 30),
-
-              // UPDATED SAVE BUTTON SECTION
-              if (widget.resume != null)
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.save, size: 24),
-                        label: const Text('UPDATE', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                        onPressed: _saveResume,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          backgroundColor: Theme.of(context).primaryColor,
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.copy, size: 24),
-                        label: const Text('SAVE AS COPY', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                        onPressed: _saveAsCopy,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          backgroundColor: Colors.blueGrey,
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              else
-                Center(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.save, size: 24),
-                    label: const Text('SAVE RESUME', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                    onPressed: _saveResume,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      elevation: 4,
-                    ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(constraints.maxWidth < 600 ? 16 : 24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderSection(),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(
+                    title: 'Personal Information',
+                    icon: Icons.person_outline,
                   ),
-                ),
-            ],
-          ),
+                  _buildPersonalInfoSection(),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(
+                    title: 'Languages',
+                    icon: Icons.language,
+                  ),
+                  _buildDynamicFieldSection(
+                    title: 'LANGUAGES',
+                    controllers: _languageControllers,
+                    onAdd: () => setState(() => _languageControllers.add(TextEditingController())),
+                    onRemove: (index) => setState(() {
+                      _languageControllers[index].dispose();
+                      _languageControllers.removeAt(index);
+                    }),
+                    labelPrefix: 'Language',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(
+                    title: 'Professional Skills',
+                    icon: Icons.work_outline,
+                  ),
+                  _buildDynamicFieldSection(
+                    title: 'SKILLS',
+                    controllers: _skillControllers,
+                    onAdd: () => setState(() => _skillControllers.add(TextEditingController())),
+                    onRemove: (index) => setState(() {
+                      _skillControllers[index].dispose();
+                      _skillControllers.removeAt(index);
+                    }),
+                    labelPrefix: 'Skill',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(
+                    title: 'Career Objective',
+                    icon: Icons.flag_outlined,
+                  ),
+                  _buildObjectiveSection(),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(
+                    title: 'Work Experience',
+                    icon: Icons.business_center_outlined,
+                  ),
+                  _buildExperienceSection(),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(
+                    title: 'Education',
+                    icon: Icons.school_outlined,
+                  ),
+                  _buildEducationSection(),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader(
+                    title: 'References',
+                    icon: Icons.people_alt_outlined,
+                  ),
+                  _buildReferenceSection(),
+                  const SizedBox(height: 30),
+
+                  // Save buttons
+                  if (widget.resume != null)
+                    constraints.maxWidth < 600
+                        ? Column(
+                      children: [
+                        _buildSaveButton(
+                          icon: Icons.save,
+                          label: 'UPDATE',
+                          onPressed: _saveResume,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildSaveButton(
+                          icon: Icons.copy,
+                          label: 'SAVE AS COPY',
+                          onPressed: _saveAsCopy,
+                          color: Colors.blueGrey,
+                        ),
+                      ],
+                    )
+                        : Row(
+                      children: [
+                        Expanded(
+                          child: _buildSaveButton(
+                            icon: Icons.save,
+                            label: 'UPDATE',
+                            onPressed: _saveResume,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildSaveButton(
+                            icon: Icons.copy,
+                            label: 'SAVE AS COPY',
+                            onPressed: _saveAsCopy,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Center(
+                      child: _buildSaveButton(
+                        icon: Icons.save,
+                        label: 'SAVE',
+                        onPressed: _saveResume,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSaveButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required Color color,
+  }) {
+    return ElevatedButton.icon(
+      icon: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: Icon(icon, size: 24),
+      ),
+      label: Padding(
+        padding: const EdgeInsets.only(right: 8.0),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
+      ),
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        elevation: 4,
       ),
     );
   }
@@ -3035,7 +3143,7 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
                     pw.SizedBox(height: 20),
 
                     // Objective section
-                    buildMainSection('OBJECT', resume.objective,
+                    buildMainSection('Object', resume.objective,
                         sectionTitleStyle, normalStyle),
                     pw.SizedBox(height: 10),
                     buildDivider(), // Divider after summary
