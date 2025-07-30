@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "708617171275",
+    "firebase_url": "https://resumebuilder-pk-default-rtdb.firebaseio.com",
+    "project_id": "resumebuilder-pk",
+    "storage_bucket": "resumebuilder-pk.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708617171275:android:fe28741927f013d41db8ce",
+        "android_client_info": {
+          "package_name": "com.example.resumebuilder"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "708617171275-o7nd779vr0g4c568kss7c9skro84tg5j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1de_TuuhmK3f4B57JDREQMWhusXhd5UA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "708617171275-o7nd779vr0g4c568kss7c9skro84tg5j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
