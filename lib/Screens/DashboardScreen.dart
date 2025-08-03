@@ -2854,27 +2854,6 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
       );
     }
 
-    // Skills container builder
-    pw.Widget buildSkillsContainer(List<dynamic> skills, pw.TextStyle style) {
-      return pw.Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: skills.map((skill) {
-          return pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: pw.BoxDecoration(
-              color: accentBlue,
-              borderRadius: pw.BorderRadius.circular(15),
-            ),
-            child: pw.Text(
-              skill.toString(),
-              style: style.copyWith(color: PdfColors.white),
-            ),
-          );
-        }).toList(),
-      );
-    }
-
     // Profile image builder - only shows when image exists
     pw.Widget? buildProfileImage(Resume resume) {
       if (resume.photo != null && resume.photo!.isNotEmpty) {
@@ -2954,7 +2933,6 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
     // Main content section builder
     pw.Widget buildMainSection(String title, String content,
         pw.TextStyle titleStyle, pw.TextStyle contentStyle) {
-
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -2973,7 +2951,6 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
     pw.Widget buildExperienceSection(Resume resume,
         pw.TextStyle titleStyle, pw.TextStyle subtitleStyle,
         pw.TextStyle normalStyle, pw.TextStyle lightStyle) {
-
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -3029,7 +3006,6 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
     pw.Widget buildEducationSection(Resume resume,
         pw.TextStyle titleStyle, pw.TextStyle subtitleStyle,
         pw.TextStyle lightStyle) {
-
       return pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -3093,11 +3069,11 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
                 children: [
                   // Profile image only if exists
                   if (profileImage != null) pw.Center(child: profileImage),
-                  if (profileImage != null) pw.SizedBox(height: 30),
+                  if (profileImage != null) pw.SizedBox(height: 15),
 
                   // Personal Information
                   buildSectionTitle('PERSONAL INFO', sidebarTitleStyle),
-                  pw.SizedBox(height: 15),
+                  pw.SizedBox(height: 7),
                   buildSidebarItem('Father Name', resume.personalInfo['fatherName'] ?? '', sidebarTextStyle),
                   buildSidebarItem('CNIC', resume.personalInfo['cnic'] ?? '', sidebarTextStyle),
                   buildSidebarItem('Phone', resume.contact ?? '', sidebarTextStyle),
@@ -3109,11 +3085,11 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
                   if (resume.personalInfo['address'] != null && resume.personalInfo['address'].isNotEmpty)
                     buildSidebarItem('Address', resume.personalInfo['address'], sidebarTextStyle),
 
-                  pw.SizedBox(height: 25),
+                  pw.SizedBox(height: 15),
 
                   // Languages
                   buildSectionTitle('LANGUAGES', sidebarTitleStyle),
-                  pw.SizedBox(height: 15),
+                  pw.SizedBox(height: 7),
                   buildBulletList(resume.languages, sidebarTextStyle),
                 ],
               ),
@@ -3138,36 +3114,42 @@ class _ResumeListScreenState extends State<ResumeListScreen> {
                         style: nameStyle,
                       ),
                     ),
-                    pw.SizedBox(height: 10),
+                    pw.SizedBox(height: 5),
                     buildDivider(), // Divider after name
-                    pw.SizedBox(height: 20),
+                    pw.SizedBox(height: 10),
 
                     // Objective section
-                    buildMainSection('Object', resume.objective,
+                    buildMainSection('OBJECTIVE', resume.objective,
                         sectionTitleStyle, normalStyle),
-                    pw.SizedBox(height: 10),
+                    pw.SizedBox(height: 5),
                     buildDivider(), // Divider after summary
-                    pw.SizedBox(height: 20),
+                    pw.SizedBox(height: 10),
 
                     // Working Experience section
                     buildExperienceSection(resume, sectionTitleStyle, subtitleStyle, normalStyle, lightStyle),
-                    pw.SizedBox(height: 10),
+                    pw.SizedBox(height: 5),
                     buildDivider(), // Divider after experience
-                    pw.SizedBox(height: 20),
+                    pw.SizedBox(height: 10),
 
                     // Education section
                     buildEducationSection(resume, sectionTitleStyle, subtitleStyle, lightStyle),
-                    pw.SizedBox(height: 10),
+                    pw.SizedBox(height: 5),
                     buildDivider(), // Divider after education
-                    pw.SizedBox(height: 20),
+                    pw.SizedBox(height: 10),
 
-                    // Skills section - moved here
+                    // Fixed Skills section
                     pw.Text('SKILLS', style: sectionTitleStyle),
-                    pw.SizedBox(height: 10),
-                    buildSkillsContainer(resume.skills, normalStyle),
-                    pw.SizedBox(height: 10),
+                    pw.SizedBox(height: 5),
+                    pw.Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: resume.skills.map((skill) {
+                        return pw.Text('$skill |', style: normalStyle);
+                      }).toList(),
+                    ),
+                    pw.SizedBox(height: 5),
                     buildDivider(), // Divider after skills
-                    pw.SizedBox(height: 20),
+                    pw.SizedBox(height: 5),
 
                     // Reference section
                     buildMainSection('REFERENCES', resume.reference,
